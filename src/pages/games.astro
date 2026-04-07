@@ -1,57 +1,28 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import SortControls from '@/components/SortControls.astro';
-import { fetchAllGames } from '@/lib/media';
+import { getGameCollection } from '@/lib/media';
 
-/**
- * 游戏列表 — 只需填写游戏名称
- * 构建时自动从 Steam 获取封面与链接
- * 添加方式：在数组中追加一行字符串即可
- */
-const gameNames: string[] = [
-  "Elden Ring",
-  "Hollow Knight",
-  "The Witcher 3: Wild Hunt",
-  "Hades",
-  "DEATH STRANDING DIRECTOR'S CUT",
-  "Kingdom Come: Deliverance 2",
-  "DEATH STRANDING 2: ON THE BEACH",
-  "Destiny 2",
-  "方舟：生存进化",
-  "GTA5",
-  "Warframe",
-  "Halo",
-  "Cyberpunk 2077",
-  "Ori",
-  "Dishonored 2",
-  "Disco Elysium",
-  "Plants vs. Zombies Garden Warfare 2",
-  "Stardew Valley",
-  "P5R",
-  "Clair Obscur: Expedition 33",
-  "The Last of Us",
-  "Devil May Cry 5",
-  "Marvel's Spider-man",
-];
-
-const gameData = await fetchAllGames(gameNames);
+const gameData = getGameCollection();
 const totalCount = gameData.length;
 ---
 
-<BaseLayout title="游戏 — TorQuen" description="TorQuen 玩过的游戏">
+<BaseLayout title="游戏" description="TorQuen 玩过的游戏">
   <section class="media-page">
     <div class="container">
       <header class="media-page__header">
         <span class="text-giant media-page__bg-text" aria-hidden="true">游</span>
         <h1 class="text-display anim-enter">游戏</h1>
         <p class="media-page__stats anim-enter anim-delay-1">
-          共 <strong>{totalCount}</strong> 款
+          共 <strong>{totalCount}</strong> 款 · 纯静态清单
         </p>
+        <p class="media-page__intro">这页不再在构建期抓 Steam 数据，链接统一退化为搜索入口。</p>
       </header>
 
       <SortControls target="#games-grid" options={[
         { value: 'default', label: '默认' },
         { value: 'alpha',   label: '首字母' },
+        { value: 'date',    label: '年代' },
       ]} />
 
       <div class="media-grid" id="games-grid">
@@ -61,18 +32,19 @@ const totalCount = gameData.length;
             target="_blank"
             rel="noopener noreferrer"
             class="media-card scroll-reveal"
-            data-sort-name={game.name}
-            data-sort-date={game.releaseDate}
+            data-sort-name={game.label}
+            data-sort-date={game.year}
           >
-            <div class="media-card__cover">
-              {game.image ? (
-                <img src={game.image} alt={game.name} loading="lazy" />
-              ) : (
-                <div class="media-card__fallback">{game.name.charAt(0)}</div>
-              )}
+            <div class="media-card__cover" aria-hidden="true">
+              <div class="media-card__fallback">{game.name.charAt(0)}</div>
             </div>
             <div class="media-card__body">
               <h4 class="media-card__name">{game.name}</h4>
+              {game.label !== game.name && <p class="media-card__label">{game.label}</p>}
+              <div class="media-card__meta">
+                {game.year && <span class="media-card__year">{game.year}</span>}
+                <span class="media-card__score">Steam 搜索</span>
+              </div>
             </div>
           </a>
         ))}
@@ -105,10 +77,14 @@ const totalCount = gameData.length;
     color: var(--color-text-muted);
   }
 
+  .media-page__intro {
+    color: var(--color-text-muted);
+  }
+
   /* ── Media Grid ── */
   .media-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     gap: var(--space-6);
   }
 
@@ -137,17 +113,9 @@ const totalCount = gameData.length;
 
   .media-card__cover {
     width: 100%;
-    aspect-ratio: 460 / 215;
-    overflow: hidden;
+    aspect-ratio: 16 / 10;
     border-bottom: var(--border-thick);
-    background: var(--color-base);
-  }
-
-  .media-card__cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+    background: linear-gradient(135deg, var(--color-link) 0%, var(--color-link) 50%, var(--color-base) 50%, var(--color-base) 100%);
   }
 
   .media-card__fallback {
@@ -168,10 +136,29 @@ const totalCount = gameData.length;
   .media-card__name {
     font-size: var(--text-sm);
     font-weight: 700;
-    margin: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    margin: 0 0 var(--space-2);
+  }
+
+  .media-card__label {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-3);
+  }
+
+  .media-card__meta {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .media-card__year {
+    color: var(--color-text-muted);
+  }
+
+  .media-card__score {
+    color: var(--color-action);
   }
 
   @media (max-width: 768px) {

@@ -1,84 +1,51 @@
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-//  媒体数据获取工具 — 追番 & 游戏 API
-// ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+import { animeEntries, gameEntries, type AnimeEntry, type GameEntry } from '@/data/media';
 
 export interface AnimeInfo {
   name: string;
-  nameCn: string;
-  image: string;
-  score: number;
+  label: string;
   url: string;
-  airDate: string; // YYYY-MM-DD or ""
+  year: string;
+  note: string;
 }
 
 export interface GameInfo {
   name: string;
-  image: string;
+  label: string;
   url: string;
-  releaseDate: string; // YYYY-MM-DD or ""
+  year: string;
+  note: string;
 }
 
-const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
-
-export async function fetchAnime(keyword: string): Promise<AnimeInfo> {
-  const fb: AnimeInfo = { name: keyword, nameCn: keyword, image: "", score: 0, url: "#", airDate: "" };
-  try {
-    const res = await fetch(
-      `https://api.bgm.tv/search/subject/${encodeURIComponent(keyword)}?type=2&responseGroup=small`,
-      { headers: { "User-Agent": "TorQuenBlog/1.0 (Astro SSG)" } },
-    );
-    if (!res.ok) return fb;
-    const data = await res.json();
-    if (!data.list?.length) return fb;
-    const s = data.list[0];
-    return {
-      name: s.name || keyword,
-      nameCn: s.name_cn || s.name || keyword,
-      image: (s.images?.common || s.images?.medium || "").replace(/^http:/, "https:"),
-      score: s.score ?? 0,
-      url: `https://bgm.tv/subject/${s.id}`,
-      airDate: s.air_date || "",
-    };
-  } catch {
-    return fb;
-  }
+function createSearchUrl(base: string, keyword: string) {
+  return `${base}${encodeURIComponent(keyword)}`;
 }
 
-export async function fetchGame(keyword: string): Promise<GameInfo> {
-  const fb: GameInfo = { name: keyword, image: "", url: "#", releaseDate: "" };
-  try {
-    const res = await fetch(
-      `https://store.steampowered.com/api/storesearch?term=${encodeURIComponent(keyword)}&l=schinese&cc=CN`,
-    );
-    if (!res.ok) return fb;
-    const data = await res.json();
-    if (!data.items?.length) return fb;
-    const g = data.items[0];
-    return {
-      name: g.name || keyword,
-      image: `https://cdn.akamai.steamstatic.com/steam/apps/${g.id}/header.jpg`,
-      url: `https://store.steampowered.com/app/${g.id}`,
-      releaseDate: "", // Steam search API doesn't return release date
-    };
-  } catch {
-    return fb;
-  }
+function normalizeAnime(entry: AnimeEntry): AnimeInfo {
+  return {
+    name: entry.name,
+    label: entry.label || entry.name,
+    url: entry.url || createSearchUrl('https://bgm.tv/subject_search/', entry.name),
+    year: entry.year || '',
+    note: entry.note || '本地维护的清单项，不依赖构建期外部抓取。',
+  };
 }
 
-export async function fetchAllAnime(names: string[]): Promise<AnimeInfo[]> {
-  const results: AnimeInfo[] = [];
-  for (const n of names) {
-    results.push(await fetchAnime(n));
-    await wait(350);
-  }
-  return results;
+function normalizeGame(entry: GameEntry): GameInfo {
+  return {
+    name: entry.name,
+    label: entry.label || entry.name,
+    url:
+      entry.url ||
+      createSearchUrl('https://store.steampowered.com/search/?term=', entry.label || entry.name),
+    year: entry.year || '',
+    note: entry.note || '本地维护的清单项，不依赖构建期外部抓取。',
+  };
 }
 
-export async function fetchAllGames(names: string[]): Promise<GameInfo[]> {
-  const results: GameInfo[] = [];
-  for (const n of names) {
-    results.push(await fetchGame(n));
-    await wait(200);
-  }
-  return results;
+export function getAnimeCollection(): AnimeInfo[] {
+  return animeEntries.map(normalizeAnime);
+}
+
+export function getGameCollection(): GameInfo[] {
+  return gameEntries.map(normalizeGame);
 }

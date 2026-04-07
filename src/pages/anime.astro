@@ -1,208 +1,29 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
 import SortControls from '@/components/SortControls.astro';
-import { fetchAllAnime } from '@/lib/media';
+import { getAnimeCollection } from '@/lib/media';
 
-/**
- * 追番列表 — 只需填写番剧名称
- * 构建时自动从 Bangumi (bgm.tv) 获取封面与评分
- * 添加方式：在数组中追加一行字符串即可
- */
-const animeNames: string[] = [
-  "进击的巨人",
-  "钢之炼金术师 FULLMETAL ALCHEMIST",
-  "命运石之门",
-  "可塑性记忆",
-  "罪恶王冠",
-  "月色真美",
-  "声之形",
-  "烟花",
-  "流汗吧！健身少女",
-  "我想吃掉你的胰脏",
-  "天气之子",
-  "铃芽之旅",
-  "你的名字",
-  "你想活出怎样的人生",
-  "言叶之庭",
-  "秒速五厘米",
-  "萤火之森",
-  "东京喰种",
-  "未闻花名",
-  "Charlotte",
-  "School Days",
-  "ハッピーシュガーライフ",
-  "四月的谎言",
-  "超时空辉夜姬",
-  "86-不存在的地域-",
-  "Overload",
-  "龙王的工作",
-  "化物语",
-  "魔女之旅",
-  "堀与宫村",
-  "未来日记",
-  "我的青春恋爱物语果然有问题",
-  "龙珠",
-  "青春猪头少年不会梦到兔女郎学姐",
-  "泡泡",
-  "剃须。然后捡到女高中生",
-  "你好世界",
-  "家有女友",
-  "租借女友",
-  "我推的孩子",
-  "One Room",
-  "埃罗芒阿老师",
-  "JOJO的奇妙冒险",
-  "冰菓",
-  "重来吧，魔王大人！",
-  "无职转生",
-  "路人女主的养成方式",
-  "她和她的猫",
-  "心灵想要大声呼喊",
-  "炎炎消防队",
-  "辉夜大小姐想让我告白",
-  "游戏人生",
-  "欢迎来到实力至上主义的教室",
-  "新世纪福音战士",
-  "紫罗兰永恒花园",
-  "中二病也要谈恋爱",
-  "来自风平浪静的明天",
-  "咒术回战",
-  "总之就是非常可爱",
-  "鬼灭之刃",
-  "某科学的超电磁炮",
-  "魔法禁书目录",
-  "Re0:从零开始的异世界生活",
-  "工作细胞",
-  "朝花夕誓",
-  "ReLIFE",
-  "境界的彼方",
-  "缘之空",
-  "寄生兽",
-  "DARLING in the FRANXX",
-  "散华礼弥",
-  "魔法科高校的劣等生",
-  "伤物语",
-  "甘城光辉游乐园",
-  "弱势角色友崎君",
-  "只有我不存在的城市",
-  "多罗罗",
-  "从多彩世界的明天开始",
-  "隐瞒之事",
-  "我女友与青梅竹马的惨烈修罗场",
-  "想哭泣的我戴上了猫的面具",
-  "电锯人",
-  "这个美术社大有问题！",
-  "玉子市场",
-  "龙与虎",
-  "昨日之歌",
-  "末日三问",
-  "关于我转生变成史莱姆这档事",
-  "转生成蜘蛛又怎样",
-  "Jose与虎与鱼们",
-  "人渣的本愿",
-  "白色相簿",
-  "杀戮天使",
-  "史莱姆日记",
-  "回复术士的重启人生",
-  "海边的异邦人",
-  "五等分的新娘",
-  "国王游戏",
-  "安达与岛村",
-  "刀剑神域",
-  "SSSS.GRIDMAN",
-  "冰海战记",
-  "薇薇-萤石眼之歌-",
-  "空之境界",
-  "SSSS.DYNAZENON",
-  "夏目友人帐",
-  "甲铁城的卡巴内瑞",
-  "暗杀教室",
-  "知晓天空之蓝的人啊",
-  "侦探已死",
-  "樱花庄的宠物女孩",
-  "一拳超人",
-  "精灵幻想记",
-  "致不灭的你",
-  "看得见的女孩",
-  "我们的重制人生",
-  "死神少爷与黑女仆",
-  "机动奥特曼",
-  "卫宫家今天的饭",
-  "君主·埃尔梅罗二世",
-  "小林家的龙女仆",
-  "宿命回响",
-  "Arcane：League of Legends",
-  "世界顶尖的暗杀者，转生为异世界贵族",
-  "瓦尼塔斯的手记",
-  "哥布林杀手",
-  "平凡职业造就世界最强",
-  "夏日幽灵",
-  "从零开始的魔法书",
-  "虚构推理",
-  "政宗君的复仇",
-  "世界尽头的圣骑士",
-  "我被逐出队伍后过上慢生活",
-  "犬屋敷",
-  "机巧少女不会受伤",
-  "终结的炽天使",
-  "灰与幻想的格林姆迦尔",
-  "异度侵入",
-  "斩！赤红之瞳",
-  "间谍过家家",
-  "勇者辞职不干了",
-  "天才王子的赤字国家振兴术",
-  "恋上换装娃娃",
-  "派对浪客诸葛孔明",
-  "LoveLive",
-  "夏日重现",
-  "契约之吻",
-  "骸骨骑士大人奇幻世界冒险中",
-  "赛博朋克：边缘行者",
-  "莉可莉丝",
-  "ALDNOAH.ZERO",
-  "重启咲良田",
-  "尸者的帝国",
-  "黑岩射手",
-  "孤独摇滚",
-  "相合之物",
-  "异世界舅舅",
-  "千与千寻",
-  "大鱼海棠",
-  "Re：创造主",
-  "地狱乐",
-  "通往夏天的隧道,再见的出口",
-  "想要成为影之实力者",
-  "天国大魔境",
-  "即使如此依旧步步进逼",
-  "勇者赫鲁库",
-  "蜘蛛侠：平行宇宙",
-  "蜘蛛侠：纵横宇宙",
-  "PLUTO",
-  "我独自升级",
-  "我立于百万生命之上",
-  "胆大党",
-  "天空之城",
-  "哈尔的移动城堡",
-  "红猪",
-];
-
-const animeData = await fetchAllAnime(animeNames);
+const animeData = getAnimeCollection();
 const totalCount = animeData.length;
-const avgScore = animeData.filter(a => a.score > 0).reduce((sum, a) => sum + a.score, 0) / animeData.filter(a => a.score > 0).length || 0;
 ---
 
-<BaseLayout title="追番 — TorQuen" description="TorQuen 的追番列表">
+<BaseLayout title="追番" description="TorQuen 的追番列表">
   <section class="media-page">
     <div class="container">
       <header class="media-page__header">
         <span class="text-giant media-page__bg-text" aria-hidden="true">番</span>
         <h1 class="text-display anim-enter">追番</h1>
         <p class="media-page__stats anim-enter anim-delay-1">
-          共 <strong>{totalCount}</strong> 部 · 均分 <strong>{avgScore.toFixed(1)}</strong>
+          共 <strong>{totalCount}</strong> 部 · 纯静态清单
         </p>
+        <p class="media-page__intro">这一页现在改为本地维护，不再依赖构建期请求第三方接口。</p>
       </header>
 
-      <SortControls target="#anime-grid" />
+      <SortControls target="#anime-grid" options={[
+        { value: 'default', label: '默认' },
+        { value: 'alpha', label: '首字母' },
+        { value: 'date', label: '年代' },
+      ]} />
 
       <div class="media-grid" id="anime-grid">
         {animeData.map((anime) => (
@@ -211,21 +32,19 @@ const avgScore = animeData.filter(a => a.score > 0).reduce((sum, a) => sum + a.s
             target="_blank"
             rel="noopener noreferrer"
             class="media-card scroll-reveal"
-            data-sort-name={anime.nameCn}
-            data-sort-date={anime.airDate}
+            data-sort-name={anime.label}
+            data-sort-date={anime.year}
           >
-            <div class="media-card__cover">
-              {anime.image ? (
-                <img src={anime.image} alt={anime.nameCn} loading="lazy" />
-              ) : (
-                <div class="media-card__fallback">{anime.nameCn.charAt(0)}</div>
-              )}
+            <div class="media-card__cover" aria-hidden="true">
+              <div class="media-card__fallback">{anime.name.charAt(0)}</div>
             </div>
             <div class="media-card__body">
-              <h4 class="media-card__name">{anime.nameCn}</h4>
-              {anime.score > 0 && (
-                <span class="media-card__score">★ {anime.score}</span>
-              )}
+              <h4 class="media-card__name">{anime.name}</h4>
+              {anime.label !== anime.name && <p class="media-card__label">{anime.label}</p>}
+              <div class="media-card__meta">
+                {anime.year && <span class="media-card__year">{anime.year}</span>}
+                <span class="media-card__score">Bangumi 搜索</span>
+              </div>
             </div>
           </a>
         ))}
@@ -258,10 +77,14 @@ const avgScore = animeData.filter(a => a.score > 0).reduce((sum, a) => sum + a.s
     color: var(--color-text-muted);
   }
 
+  .media-page__intro {
+    color: var(--color-text-muted);
+  }
+
   /* ── Media Grid ── */
   .media-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: var(--space-6);
   }
 
@@ -290,17 +113,9 @@ const avgScore = animeData.filter(a => a.score > 0).reduce((sum, a) => sum + a.s
 
   .media-card__cover {
     width: 100%;
-    aspect-ratio: 3 / 4;
-    overflow: hidden;
+    aspect-ratio: 4 / 3;
     border-bottom: var(--border-thick);
-    background: var(--color-base);
-  }
-
-  .media-card__cover img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
+    background: linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent) 50%, var(--color-base) 50%, var(--color-base) 100%);
   }
 
   .media-card__fallback {
@@ -321,19 +136,29 @@ const avgScore = animeData.filter(a => a.score > 0).reduce((sum, a) => sum + a.s
   .media-card__name {
     font-size: var(--text-sm);
     font-weight: 700;
-    margin: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    margin: 0 0 var(--space-2);
+  }
+
+  .media-card__label {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-3);
+  }
+
+  .media-card__meta {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+  }
+
+  .media-card__year {
+    color: var(--color-text-muted);
   }
 
   .media-card__score {
-    display: inline-block;
-    font-family: var(--font-mono);
-    font-size: var(--text-xs);
-    font-weight: 700;
     color: var(--color-action);
-    margin-top: var(--space-1);
   }
 
   @media (max-width: 768px) {

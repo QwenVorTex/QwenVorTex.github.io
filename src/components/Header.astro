@@ -1,14 +1,8 @@
 ---
-const navItems = [
-  { label: '首页', href: '/' },
-  { label: '文章', href: '/archive' },
-  { label: '关于', href: '/about' },
-];
+import { siteConfig } from '@/config/site';
 
-const dropdownItems = [
-  { label: '追番', href: '/anime' },
-  { label: '游戏', href: '/games' },
-];
+const navItems = siteConfig.navigation.primary;
+const dropdownItems = siteConfig.navigation.secondary;
 
 const currentPath = Astro.url.pathname;
 const isDropdownActive = dropdownItems.some((item) => currentPath === item.href);
@@ -28,25 +22,29 @@ const isDropdownActive = dropdownItems.some((item) => currentPath === item.href)
         <a
           href={item.href}
           class:list={['site-header__link', { 'is-active': currentPath === item.href }]}
+          aria-current={currentPath === item.href ? 'page' : undefined}
         >
           {item.label}
         </a>
       ))}
 
-      <!-- Dropdown: 更多 -->
-      <div class="site-header__dropdown">
+      <div class="site-header__dropdown" data-dropdown-root>
         <button
           class:list={['site-header__link site-header__dropdown-trigger', { 'is-active': isDropdownActive }]}
           aria-haspopup="true"
           aria-expanded="false"
+          aria-controls="header-more-menu"
+          type="button"
+          id="header-more-trigger"
         >
           更多 <span class="site-header__caret" aria-hidden="true">▾</span>
         </button>
-        <div class="site-header__dropdown-menu">
+        <div class="site-header__dropdown-menu" id="header-more-menu">
           {dropdownItems.map((item) => (
             <a
               href={item.href}
               class:list={['site-header__dropdown-item', { 'is-active': currentPath === item.href }]}
+              aria-current={currentPath === item.href ? 'page' : undefined}
             >
               {item.label}
             </a>
@@ -56,20 +54,27 @@ const isDropdownActive = dropdownItems.some((item) => currentPath === item.href)
     </nav>
 
     <!-- Mobile toggle -->
-    <button class="site-header__burger" aria-label="打开菜单" id="nav-toggle">
+    <button
+      class="site-header__burger"
+      aria-label="打开菜单"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+      id="nav-toggle"
+      type="button"
+    >
       <span></span>
       <span></span>
       <span></span>
     </button>
   </div>
 
-  <!-- Mobile menu -->
-  <div class="site-header__mobile-menu" id="mobile-menu">
+  <div class="site-header__mobile-menu" id="mobile-menu" hidden>
     <nav>
       {navItems.map((item) => (
         <a
           href={item.href}
           class:list={['site-header__mobile-link', { 'is-active': currentPath === item.href }]}
+          aria-current={currentPath === item.href ? 'page' : undefined}
         >
           {item.label}
         </a>
@@ -79,6 +84,7 @@ const isDropdownActive = dropdownItems.some((item) => currentPath === item.href)
         <a
           href={item.href}
           class:list={['site-header__mobile-link', { 'is-active': currentPath === item.href }]}
+          aria-current={currentPath === item.href ? 'page' : undefined}
         >
           {item.label}
         </a>
@@ -192,6 +198,7 @@ const isDropdownActive = dropdownItems.some((item) => currentPath === item.href)
   }
 
   .site-header__dropdown:hover .site-header__caret,
+  .site-header__dropdown:focus-within .site-header__caret,
   .site-header__dropdown.is-open .site-header__caret {
     transform: rotate(180deg);
   }
@@ -215,6 +222,7 @@ const isDropdownActive = dropdownItems.some((item) => currentPath === item.href)
   }
 
   .site-header__dropdown:hover .site-header__dropdown-menu,
+  .site-header__dropdown:focus-within .site-header__dropdown-menu,
   .site-header__dropdown.is-open .site-header__dropdown-menu {
     opacity: 1;
     visibility: visible;
@@ -331,13 +339,60 @@ const isDropdownActive = dropdownItems.some((item) => currentPath === item.href)
 </style>
 
 <script>
-  const toggle = document.getElementById('nav-toggle');
-  const menu = document.getElementById('mobile-menu');
+  function initHeader() {
+    const toggle = document.getElementById('nav-toggle');
+    const menu = document.getElementById('mobile-menu');
+    const dropdownRoot = document.querySelector('[data-dropdown-root]');
+    const dropdownTrigger = document.getElementById('header-more-trigger');
+    const dropdownMenu = document.getElementById('header-more-menu');
 
-  toggle?.addEventListener('click', () => {
-    menu?.classList.toggle('is-open');
-    const isOpen = menu?.classList.contains('is-open');
-    toggle.setAttribute('aria-expanded', String(isOpen));
-    toggle.setAttribute('aria-label', isOpen ? '关闭菜单' : '打开菜单');
-  });
+    if (!toggle || !menu || toggle.dataset.ready === 'true') return;
+    toggle.dataset.ready = 'true';
+
+    const setMenuOpen = (open) => {
+      menu.hidden = !open;
+      menu.classList.toggle('is-open', open);
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? '关闭菜单' : '打开菜单');
+    };
+
+    const setDropdownOpen = (open) => {
+      if (!dropdownRoot || !dropdownTrigger || !dropdownMenu) return;
+      dropdownRoot.classList.toggle('is-open', open);
+      dropdownTrigger.setAttribute('aria-expanded', String(open));
+    };
+
+    toggle.addEventListener('click', () => {
+      setMenuOpen(toggle.getAttribute('aria-expanded') !== 'true');
+    });
+
+    dropdownTrigger?.addEventListener('click', () => {
+      setDropdownOpen(dropdownTrigger.getAttribute('aria-expanded') !== 'true');
+    });
+
+    document.addEventListener('click', (event) => {
+      if (!(event.target instanceof Node)) return;
+      if (dropdownRoot && !dropdownRoot.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+      if (!toggle.contains(event.target) && !menu.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        setDropdownOpen(false);
+        setMenuOpen(false);
+      }
+    });
+
+    document.addEventListener('astro:before-swap', () => {
+      setDropdownOpen(false);
+      setMenuOpen(false);
+    });
+  }
+
+  initHeader();
+  document.addEventListener('astro:page-load', initHeader);
 </script>

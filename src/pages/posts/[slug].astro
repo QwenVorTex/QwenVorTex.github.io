@@ -1,9 +1,11 @@
 ---
 import PostLayout from '@/layouts/PostLayout.astro';
 import { getCollection, render } from 'astro:content';
+import PostCard from '@/components/PostCard.astro';
+import { estimateReadingMinutes, getPublishedPosts, getRelatedPosts } from '@/lib/posts';
 
 export async function getStaticPaths() {
-  const posts = await getCollection('posts');
+  const posts = getPublishedPosts(await getCollection('posts'));
   return posts.map((post) => ({
     params: { slug: post.id },
     props: { post },
@@ -11,7 +13,10 @@ export async function getStaticPaths() {
 }
 
 const { post } = Astro.props;
+const allPosts = getPublishedPosts(await getCollection('posts'));
 const { Content } = await render(post);
+const readingMinutes = estimateReadingMinutes(post.body);
+const relatedPosts = getRelatedPosts(post, allPosts, 3);
 ---
 
 <PostLayout
@@ -21,6 +26,46 @@ const { Content } = await render(post);
   updatedDate={post.data.updatedDate}
   heroColor={post.data.heroColor}
   tags={post.data.tags}
+  readingMinutes={readingMinutes}
+  ogImage={post.data.ogImage}
+  keywords={post.data.keywords}
+  canonical={post.data.canonical}
 >
   <Content />
+
+  {relatedPosts.length > 0 && (
+    <section slot="afterContent" class="post-related">
+      <div class="post-related__header">
+        <h2>继续阅读</h2>
+        <p>从相近主题开始继续浏览。</p>
+      </div>
+
+      <div class="grid grid--brutalist">
+        {relatedPosts.map((entry, index) => (
+          <PostCard
+            title={entry.data.title}
+            description={entry.data.description}
+            href={`/posts/${entry.id}`}
+            pubDate={entry.data.pubDate}
+            heroColor={entry.data.heroColor}
+            tags={entry.data.tags}
+            index={index}
+          />
+        ))}
+      </div>
+    </section>
+  )}
 </PostLayout>
+
+<style>
+  .post-related {
+    margin-top: var(--space-16);
+    padding-top: var(--space-10);
+    border-top: var(--border-thick);
+  }
+
+  .post-related__header p {
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-8);
+  }
+</style>

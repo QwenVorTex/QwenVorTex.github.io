@@ -1,6 +1,7 @@
 ---
 import BaseLayout from './BaseLayout.astro';
 import Tag from '@/components/Tag.astro';
+import { siteConfig } from '@/config/site';
 
 interface Props {
   title: string;
@@ -9,9 +10,24 @@ interface Props {
   updatedDate?: Date;
   heroColor?: 'yellow' | 'red' | 'blue' | 'black';
   tags?: string[];
+  readingMinutes?: number;
+  ogImage?: string;
+  keywords?: string[];
+  canonical?: string;
 }
 
-const { title, description, pubDate, updatedDate, heroColor = 'yellow', tags = [] } = Astro.props;
+const {
+  title,
+  description,
+  pubDate,
+  updatedDate,
+  heroColor = 'yellow',
+  tags = [],
+  readingMinutes = 1,
+  ogImage,
+  keywords = [],
+  canonical,
+} = Astro.props;
 
 const colorMap = {
   yellow: 'var(--color-accent)',
@@ -34,15 +50,47 @@ const formattedUpdate = updatedDate?.toLocaleDateString('zh-CN', {
   month: 'long',
   day: 'numeric',
 });
+
+const resolvedSiteURL = Astro.site ?? new URL(siteConfig.url);
+const articleStructuredData = {
+  '@context': 'https://schema.org',
+  '@type': 'BlogPosting',
+  headline: title,
+  description,
+  inLanguage: siteConfig.locale,
+  datePublished: pubDate.toISOString(),
+  dateModified: (updatedDate || pubDate).toISOString(),
+  author: {
+    '@type': 'Person',
+    name: siteConfig.author.name,
+  },
+  publisher: {
+    '@type': 'Person',
+    name: siteConfig.author.name,
+  },
+  image: ogImage ? [new URL(ogImage, resolvedSiteURL).toString()] : undefined,
+  keywords: [...new Set([...keywords, ...tags])],
+  mainEntityOfPage: canonical || new URL(Astro.url.pathname, resolvedSiteURL).toString(),
+};
 ---
 
-<BaseLayout title={`${title} | Blog`} description={description}>
+<BaseLayout
+  title={title}
+  description={description}
+  ogImage={ogImage}
+  pageType="article"
+  publishedTime={pubDate.toISOString()}
+  modifiedTime={(updatedDate || pubDate).toISOString()}
+  keywords={[...new Set([...keywords, ...tags])]}
+  structuredData={articleStructuredData}
+>
   <article class="post">
-    <!-- Hero Section -->
     <header class="post__hero" style={`background: ${heroBackground}; color: ${textColor};`}>
       <div class="container">
+        <a class="post__back text-label" href="/archive">返回归档</a>
         <div class="post__meta text-label anim-enter">
           <time datetime={pubDate.toISOString()}>{formattedDate}</time>
+          <span>· {readingMinutes} 分钟阅读</span>
           {updatedDate && <span>· 更新于 {formattedUpdate}</span>}
         </div>
         <h1 class="post__title anim-enter anim-delay-1">{title}</h1>
@@ -50,23 +98,33 @@ const formattedUpdate = updatedDate?.toLocaleDateString('zh-CN', {
         {tags.length > 0 && (
           <div class="post__tags anim-enter anim-delay-3">
             {tags.map((tag) => (
-              <Tag label={tag} />
+              <Tag label={tag} href={`/archive?tag=${encodeURIComponent(tag)}`} />
             ))}
           </div>
         )}
       </div>
     </header>
 
-    <!-- Content -->
     <div class="post__body container container--narrow">
       <div class="post__content scroll-reveal">
         <slot />
       </div>
+      <slot name="afterContent" />
     </div>
   </article>
 </BaseLayout>
 
 <style>
+  .post__back {
+    display: inline-flex;
+    margin-bottom: var(--space-5);
+    color: inherit;
+  }
+
+  .post__back:hover {
+    color: inherit;
+  }
+
   .post__hero {
     padding: var(--space-16) 0 var(--space-12);
     border-bottom: var(--border-thick);

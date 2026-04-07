@@ -10,6 +10,10 @@ const posts = defineCollection({
     updatedDate: z.coerce.date().optional(),
     heroColor: z.enum(['yellow', 'red', 'blue', 'black']).default('yellow'),
     tags: z.array(z.string()).default([]),
+    featured: z.boolean().default(false),
+    keywords: z.array(z.string()).default([]),
+    ogImage: z.string().optional(),
+    canonical: z.string().url().optional(),
     draft: z.boolean().default(false),
   }),
 });

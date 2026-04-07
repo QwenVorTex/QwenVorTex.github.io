@@ -1,5 +1,12 @@
 ---
+import { siteConfig } from '@/config/site';
+
 const year = new Date().getFullYear();
+const socialLinks = [
+  { label: 'GitHub', href: siteConfig.social.github },
+  { label: 'X', href: siteConfig.social.x },
+  { label: 'Bilibili', href: siteConfig.social.bilibili },
+].filter((item) => item.href);
 ---
 
 <footer class="site-footer">
@@ -21,11 +28,10 @@ const year = new Date().getFullYear();
       <div class="site-footer__col">
         <div class="site-footer__logo">
           <span class="site-footer__logo-block"></span>
-          <span class="site-footer__logo-text">BLOG</span>
+          <span class="site-footer__logo-text">{siteConfig.shortName}</span>
         </div>
         <p class="site-footer__desc">
-          一个以简单粗糙设计构建的个人博客。<br/>
-          拒绝圆角，拥抱直角。
+          {siteConfig.description}
         </p>
       </div>
 
@@ -41,12 +47,17 @@ const year = new Date().getFullYear();
       <div class="site-footer__col">
         <h4 class="site-footer__heading">链接</h4>
         <a href="/rss.xml" class="site-footer__link">RSS 订阅</a>
-        <a href="https://github.com" class="site-footer__link" target="_blank" rel="noopener">GitHub</a>
+        {socialLinks.map((item) => (
+          <a href={item.href} class="site-footer__link" target="_blank" rel="noopener noreferrer">
+            {item.label}
+          </a>
+        ))}
+        {socialLinks.length === 0 && <p class="site-footer__note">真实社交链接待补充。</p>}
       </div>
     </div>
 
     <div class="site-footer__bottom">
-      <p class="text-label">© {year} · Built with Astro · Neo-Brutalist Design</p>
+      <p class="text-label">© {year} · Built with Astro · {siteConfig.shortName}</p>
     </div>
   </div>
 </footer>
@@ -120,6 +131,13 @@ const year = new Date().getFullYear();
   .site-footer__link:hover {
     color: var(--color-action);
     text-decoration: none;
+  }
+
+  .site-footer__note {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    margin-top: var(--space-2);
+    margin-bottom: 0;
   }
 
   .site-footer__bottom {

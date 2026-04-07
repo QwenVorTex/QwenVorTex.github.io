@@ -3,16 +3,15 @@ import BaseLayout from '@/layouts/BaseLayout.astro';
 import PostCard from '@/components/PostCard.astro';
 import SortControls from '@/components/SortControls.astro';
 import { getCollection } from 'astro:content';
+import { getPublishedPosts, getTagStats } from '@/lib/posts';
 
-const allPosts = (await getCollection('posts'))
-  .filter((post) => !post.data.draft)
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
+const allPosts = getPublishedPosts(await getCollection('posts'));
+const allTags = getTagStats(allPosts);
 ---
 
-<BaseLayout title="文章归档 | Blog" description="所有博客文章">
+<BaseLayout title="文章归档" description="所有博客文章">
   <section class="archive">
     <div class="container">
-      <!-- Header -->
       <header class="archive__header">
         <span class="text-giant archive__bg-num" aria-hidden="true">
           {String(allPosts.length).padStart(2, '0')}
@@ -21,7 +20,32 @@ const allPosts = (await getCollection('posts'))
         <p class="archive__count anim-enter anim-delay-1">
           共 <strong>{allPosts.length}</strong> 篇文章
         </p>
+        <p class="archive__intro">
+          这里按时间集中展示所有文章，也可以直接按主题筛选。
+        </p>
       </header>
+
+      {allTags.length > 0 && (
+        <div class="archive__filters card card--flat scroll-reveal">
+          <div class="archive__filters-head">
+            <span class="text-label">主题筛选</span>
+            <button class="archive__filter archive__filter--clear is-active" type="button" data-tag-filter="">
+              全部
+            </button>
+          </div>
+          <div class="archive__tags">
+            {allTags.map((item, index) => (
+              <button
+                class:list={['archive__filter', `archive__filter--${index % 3 === 0 ? 'accent' : index % 3 === 1 ? 'link' : 'action'}`]}
+                type="button"
+                data-tag-filter={item.tag}
+              >
+                {item.tag} · {item.count}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       <SortControls target="#posts-grid" options={[
         { value: 'default', label: '最新' },
@@ -34,6 +58,7 @@ const allPosts = (await getCollection('posts'))
           <div
             data-sort-name={post.data.title}
             data-sort-date={post.data.pubDate.toISOString().slice(0, 10)}
+            data-tags={post.data.tags.join('|')}
           >
             <PostCard
               title={post.data.title}
@@ -79,4 +104,97 @@ const allPosts = (await getCollection('posts'))
     font-size: var(--text-lg);
     color: var(--color-text-muted);
   }
+
+  .archive__intro {
+    margin-top: var(--space-4);
+    color: var(--color-text-muted);
+  }
+
+  .archive__filters {
+    margin-bottom: var(--space-8);
+  }
+
+  .archive__filters-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+
+  .archive__tags {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  .archive__filter {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    font-weight: 700;
+    padding: var(--space-1) var(--space-3);
+    border: var(--border-medium);
+    background: var(--color-surface);
+    transition: transform var(--dur-instant) var(--steps-micro),
+                box-shadow var(--dur-instant) var(--steps-micro);
+  }
+
+  .archive__filter:hover,
+  .archive__filter.is-active {
+    transform: translate(-2px, -2px);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .archive__filter--accent { background: var(--color-accent); }
+  .archive__filter--link { background: var(--color-link); color: var(--color-surface); }
+  .archive__filter--action { background: var(--color-action); color: var(--color-surface); }
+
+  @media (max-width: 768px) {
+    .archive__filters-head {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
 </style>
+
+<script>
+  function initArchiveFilters() {
+    const archive = document.querySelector('.archive');
+    if (!(archive instanceof HTMLElement) || archive.dataset.filtersReady === 'true') return;
+    archive.dataset.filtersReady = 'true';
+
+    const buttons = Array.from(document.querySelectorAll('[data-tag-filter]'));
+    const cards = Array.from(document.querySelectorAll('#posts-grid > div'));
+    const params = new URLSearchParams(window.location.search);
+
+    const applyFilter = (tag) => {
+      buttons.forEach((button) => {
+        button.classList.toggle('is-active', button.getAttribute('data-tag-filter') === tag);
+      });
+
+      cards.forEach((card) => {
+        const tags = card.getAttribute('data-tags') || '';
+        card.toggleAttribute('hidden', Boolean(tag) && !tags.split('|').includes(tag));
+      });
+
+      const url = new URL(window.location.href);
+      if (tag) {
+        url.searchParams.set('tag', tag);
+      } else {
+        url.searchParams.delete('tag');
+      }
+      window.history.replaceState({}, '', url);
+    };
+
+    buttons.forEach((button) => {
+      button.addEventListener('click', () => {
+        applyFilter(button.getAttribute('data-tag-filter') || '');
+      });
+    });
+
+    applyFilter(params.get('tag') || '');
+  }
+
+  initArchiveFilters();
+  document.addEventListener('astro:page-load', initArchiveFilters);
+</script>

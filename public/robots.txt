@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://your-blog.edgeone.app/sitemap-index.xml
+Sitemap: https://qwen-blog-2i19bt4j.edgeone.cool/sitemap-index.xml

@@ -93,6 +93,9 @@ const { target, options = [
 <script>
   function initSortControls() {
     document.querySelectorAll<HTMLElement>('.sort-controls').forEach((ctrl) => {
+      if (ctrl.dataset.sortReady === 'true') return;
+      ctrl.dataset.sortReady = 'true';
+
       const targetSelector = ctrl.dataset.sortTarget;
       if (!targetSelector) return;
       const container = document.querySelector<HTMLElement>(targetSelector);
@@ -128,8 +131,7 @@ const { target, options = [
               sorted = [...currentItems].sort((a, b) => {
                 const dateA = a.dataset.sortDate || '0';
                 const dateB = b.dataset.sortDate || '0';
-                // Most recent first
-                return dateB.localeCompare(dateA);
+                return dateA.localeCompare(dateB);
               });
               break;
 

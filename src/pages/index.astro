@@ -1,35 +1,67 @@
 ---
 import BaseLayout from '@/layouts/BaseLayout.astro';
-import HeroSection from '@/components/HeroSection.astro';
 import PostCard from '@/components/PostCard.astro';
 import Button from '@/components/Button.astro';
+import Tag from '@/components/Tag.astro';
 import { getCollection } from 'astro:content';
+import { siteConfig } from '@/config/site';
+import { getFeaturedPosts, getPublishedPosts, getTagStats } from '@/lib/posts';
 
-const allPosts = (await getCollection('posts'))
-  .filter((post) => !post.data.draft)
-  .sort((a, b) => b.data.pubDate.valueOf() - a.data.pubDate.valueOf());
-
+const allPosts = getPublishedPosts(await getCollection('posts'));
+const featuredPosts = getFeaturedPosts(allPosts, 3);
 const recentPosts = allPosts.slice(0, 6);
+const tagStats = getTagStats(allPosts).slice(0, 8);
 ---
 
-<BaseLayout title="Blog · 新粗野主义">
-  <!-- Hero -->
-  <HeroSection
-    title="DIGITAL"
-    accentWord="BRUTALISM"
-    subtitle="一个以新粗野主义美学构建的个人博客。不对称的几何、暴力的硬阴影、定格的卡帧动效——拒绝平庸的数字空间。"
-  />
+<BaseLayout title={siteConfig.title} description={siteConfig.description}>
+  <section class="home-hero">
+    <div class="container home-hero__grid">
+      <div class="home-hero__copy">
+        <p class="home-hero__eyebrow text-label anim-enter">{siteConfig.home.eyebrow}</p>
+        <h1 class="home-hero__title anim-enter anim-delay-1">{siteConfig.home.title}</h1>
+        <p class="home-hero__subtitle anim-enter anim-delay-2">{siteConfig.home.subtitle}</p>
+        <div class="home-hero__actions anim-enter anim-delay-3">
+          <Button label={siteConfig.home.ctaLabel} href={siteConfig.home.ctaHref} variant="primary" />
+          <Button label={siteConfig.home.secondaryLabel} href={siteConfig.home.secondaryHref} variant="ghost" />
+        </div>
+      </div>
 
-  <!-- Recent Posts -->
+      <aside class="home-hero__panel card card--accent scroll-reveal">
+        <span class="badge">站点概览</span>
+        <ul class="home-hero__stats">
+          <li>
+            <strong>{allPosts.length}</strong>
+            <span>已发布文章</span>
+          </li>
+          <li>
+            <strong>{tagStats.length}</strong>
+            <span>正在写的主题</span>
+          </li>
+          <li>
+            <strong>RSS</strong>
+            <span>可以直接订阅更新</span>
+          </li>
+        </ul>
+        <p class="home-hero__panel-copy">
+          这个博客现在优先展示内容入口、主题分布和作者视角，而不是只展示视觉风格。
+        </p>
+      </aside>
+    </div>
+    <div class="home-hero__bar" aria-hidden="true"></div>
+  </section>
+
   <section class="section">
     <div class="container">
       <div class="section__header">
-        <h2 class="anim-enter">最新文章</h2>
-        <Button label="查看全部" href="/archive" variant="ghost" />
+        <div>
+          <p class="text-label section__eyebrow">Start Here</p>
+          <h2 class="anim-enter">从这里开始看</h2>
+        </div>
+        <Button label="查看归档" href="/archive" variant="ghost" />
       </div>
 
       <div class="grid grid--brutalist">
-        {recentPosts.map((post, i) => (
+        {featuredPosts.map((post, i) => (
           <PostCard
             title={post.data.title}
             description={post.data.description}
@@ -53,30 +85,166 @@ const recentPosts = allPosts.slice(0, 6);
     </div>
   </section>
 
-  <!-- Feature Blocks -->
   <section class="section">
     <div class="container">
+      <div class="section__header">
+        <div>
+          <p class="text-label section__eyebrow">Topics</p>
+          <h2>正在写的主题</h2>
+        </div>
+        <Button label="订阅 RSS" href="/rss.xml" variant="ghost" />
+      </div>
+
+      <div class="topic-cloud card card--flat scroll-reveal">
+        {tagStats.map((item, index) => (
+          <Tag
+            label={`${item.tag} · ${item.count}`}
+            href={`/archive?tag=${encodeURIComponent(item.tag)}`}
+            variant={index % 3 === 0 ? 'accent' : index % 3 === 1 ? 'link' : 'action'}
+          />
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="container">
+      <div class="section__header">
+        <div>
+          <p class="text-label section__eyebrow">What You Will Find</p>
+          <h2>这个站点会写什么</h2>
+        </div>
+      </div>
+
       <div class="grid grid--3">
         <div class="card card--accent scroll-reveal">
-          <h3 style="border:none; padding:0;">反设计</h3>
-          <p>拒绝圆角与渐变，拥抱直角与硬阴影。每一个 UI 元素都被从背景中暴力剥离。</p>
+          <h3 style="border:none; padding:0;">设计判断</h3>
+          <p>记录配色、排版、信息层级和可访问性的取舍，不只展示结果，也解释为什么这么做。</p>
         </div>
-        <div class="card card--action scroll-reveal">
-          <h3 style="border:none; padding:0; color: inherit;">卡帧动效</h3>
-          <p>告别 60FPS 的丝滑动画。12 帧的定格效果赋予界面机械打字机般的物理质感。</p>
+        <div class="card scroll-reveal">
+          <h3 style="border:none; padding:0;">实现过程</h3>
+          <p>把视觉语言落到 Astro、TypeScript 和 CSS 上，关注组件结构、构建方式和可维护性。</p>
         </div>
         <div class="card card--link scroll-reveal">
-          <h3 style="border:none; padding:0; color: inherit;">撞色工程</h3>
-          <p>基于 WCAG 对比度标准的色彩系统，在大胆撞色中确保每个 UI 元素绝对清晰可见。</p>
+          <h3 style="border:none; padding:0; color: inherit;">个人清单</h3>
+          <p>保留追番和游戏页面，但它们现在是纯静态清单，不再拖慢构建，也更适合长期维护。</p>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--compact">
+    <div class="container">
+      <div class="section__header">
+        <div>
+          <p class="text-label section__eyebrow">Latest</p>
+          <h2>最近更新</h2>
+        </div>
+      </div>
+
+      <div class="grid grid--brutalist">
+        {recentPosts.slice(0, 3).map((post, i) => (
+          <PostCard
+            title={post.data.title}
+            description={post.data.description}
+            href={`/posts/${post.id}`}
+            pubDate={post.data.pubDate}
+            heroColor={post.data.heroColor}
+            tags={post.data.tags}
+            index={i + 3}
+          />
+        ))}
       </div>
     </div>
   </section>
 </BaseLayout>
 
 <style>
+  .home-hero {
+    border-bottom: var(--border-thick);
+  }
+
+  .home-hero__grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(320px, 0.8fr);
+    gap: var(--space-10);
+    align-items: start;
+    padding-top: var(--space-16);
+    padding-bottom: var(--space-12);
+  }
+
+  .home-hero__eyebrow {
+    margin-bottom: var(--space-4);
+  }
+
+  .home-hero__title {
+    max-width: 12ch;
+    margin-bottom: var(--space-6);
+  }
+
+  .home-hero__subtitle {
+    font-size: var(--text-lg);
+    max-width: 44ch;
+    color: var(--color-text-muted);
+  }
+
+  .home-hero__actions {
+    display: flex;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+
+  .home-hero__stats {
+    list-style: none;
+    margin: var(--space-6) 0;
+    display: grid;
+    gap: var(--space-4);
+  }
+
+  .home-hero__stats li {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding-bottom: var(--space-3);
+    border-bottom: var(--border-medium);
+  }
+
+  .home-hero__stats strong {
+    font-family: var(--font-display);
+    font-size: var(--text-2xl);
+  }
+
+  .home-hero__stats span {
+    align-self: end;
+    text-align: right;
+    color: var(--color-text-muted);
+  }
+
+  .home-hero__panel-copy {
+    margin-bottom: 0;
+  }
+
+  .home-hero__bar {
+    height: 8px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--color-border) 0px,
+      var(--color-border) 18px,
+      var(--color-accent) 18px,
+      var(--color-accent) 36px,
+      var(--color-link) 36px,
+      var(--color-link) 54px,
+      var(--color-action) 54px,
+      var(--color-action) 72px
+    );
+  }
+
   .section {
     padding: var(--space-16) 0;
+  }
+
+  .section--compact {
+    padding-top: 0;
   }
 
   .section__header {
@@ -84,14 +252,37 @@ const recentPosts = allPosts.slice(0, 6);
     align-items: baseline;
     justify-content: space-between;
     margin-bottom: var(--space-10);
+    gap: var(--space-4);
   }
 
   .section__header h2 {
     margin-bottom: 0;
   }
 
+  .section__eyebrow {
+    margin-bottom: var(--space-3);
+  }
+
   .empty-state {
     text-align: center;
     padding: var(--space-16);
+  }
+
+  .topic-cloud {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 768px) {
+    .home-hero__grid {
+      grid-template-columns: 1fr;
+      padding-top: var(--space-10);
+    }
+
+    .section__header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
   }
 </style>
