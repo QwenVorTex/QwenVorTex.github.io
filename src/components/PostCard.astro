@@ -52,6 +52,28 @@ const rotation = rotations[index % rotations.length];
 </a>
 
 <style>
+  @keyframes post-card-reveal {
+    0% {
+      opacity: 0;
+      transform: translateY(54px) scale(0.86) rotate(var(--card-rotate, 0deg));
+    }
+
+    36% {
+      opacity: 0.18;
+      transform: translateY(42px) scale(0.89) rotate(var(--card-rotate, 0deg));
+    }
+
+    70% {
+      opacity: 0.72;
+      transform: translateY(18px) scale(0.96) rotate(var(--card-rotate, 0deg));
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0) scale(1) rotate(var(--card-rotate, 0deg));
+    }
+  }
+
   .post-card {
     display: block;
     background: var(--color-surface);
@@ -64,6 +86,15 @@ const rotation = rotations[index % rotations.length];
     transform: rotate(var(--card-rotate, 0deg));
     transition: transform var(--dur-fast) var(--steps-small),
                 box-shadow var(--dur-fast) var(--steps-small);
+  }
+
+  .post-card.scroll-reveal {
+    opacity: 0;
+    transform: translateY(54px) scale(0.86) rotate(var(--card-rotate, 0deg));
+  }
+
+  .post-card.scroll-reveal.is-visible {
+    animation: post-card-reveal 0.24s steps(3, end) both;
   }
 
   .post-card:hover {

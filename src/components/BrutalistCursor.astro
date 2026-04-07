@@ -1,0 +1,479 @@
+---
+const reactorCells = Array.from({ length: 12 }, (_, index) => index);
+---
+
+<div class="cursor-reactor" id="cursor-reactor" aria-hidden="true">
+  {reactorCells.map((cell) => (
+    <span class="cursor-reactor__cell" data-reactor-cell data-index={cell}></span>
+  ))}
+</div>
+
+<div
+  class="brutalist-cursor"
+  id="brutalist-cursor"
+  aria-hidden="true"
+  data-mode="default"
+  data-zone="default"
+  data-pressed="false"
+>
+  <div class="brutalist-cursor__shadow" id="cursor-shadow"></div>
+  <div class="brutalist-cursor__core" id="cursor-core">
+    <div class="brutalist-cursor__core-mark"></div>
+  </div>
+</div>
+
+<style is:global>
+  @media (hover: hover) and (pointer: fine) {
+    html.has-brutalist-cursor body,
+    html.has-brutalist-cursor a,
+    html.has-brutalist-cursor button,
+    html.has-brutalist-cursor [role='button'],
+    html.has-brutalist-cursor .card,
+    html.has-brutalist-cursor .post-card,
+    html.has-brutalist-cursor .media-card,
+    html.has-brutalist-cursor .tag,
+    html.has-brutalist-cursor .home-hero__block,
+    html.has-brutalist-cursor .hero__block {
+      cursor: none !important;
+    }
+  }
+
+  body {
+    position: relative;
+  }
+
+  #scroll-container {
+    position: relative;
+    z-index: 1;
+  }
+
+  .cursor-reactor {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: clip;
+  }
+
+  .cursor-reactor__cell {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 20px;
+    height: 20px;
+    border: var(--border-medium);
+    background: rgba(var(--color-accent-rgb), 0.16);
+    box-shadow: 4px 4px 0px 0px rgba(var(--color-border-rgb), 0.65);
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.4);
+    transition:
+      opacity 0.18s var(--steps-small),
+      transform 0.18s var(--steps-small),
+      background-color var(--dur-instant) var(--steps-micro),
+      border-color var(--dur-instant) var(--steps-micro),
+      box-shadow var(--dur-fast) var(--steps-small);
+    will-change: transform, opacity;
+  }
+
+  .cursor-reactor__cell.is-active {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1.08);
+  }
+
+  .cursor-reactor__cell[data-tone='link'] {
+    background: rgba(var(--color-link-rgb), 0.16);
+  }
+
+  .cursor-reactor__cell[data-tone='action'] {
+    background: rgba(var(--color-action-rgb), 0.15);
+  }
+
+  .cursor-reactor__cell[data-tone='neutral'] {
+    background: rgba(var(--color-border-rgb), 0.09);
+  }
+
+  .cursor-reactor__cell[data-kind='button'] {
+    width: 28px;
+    height: 28px;
+  }
+
+  .cursor-reactor__cell[data-kind='card'] {
+    width: 24px;
+    height: 24px;
+  }
+
+  .cursor-reactor__cell[data-kind='hero'] {
+    width: 26px;
+    height: 26px;
+  }
+
+  .brutalist-cursor {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity var(--dur-fast) var(--steps-small);
+  }
+
+  .brutalist-cursor.is-active {
+    opacity: 1;
+  }
+
+  .brutalist-cursor__shadow,
+  .brutalist-cursor__core {
+    position: fixed;
+    left: 0;
+    top: 0;
+    width: 26px;
+    height: 26px;
+    will-change: transform, width, height, background, box-shadow;
+  }
+
+  .brutalist-cursor__shadow {
+    background: var(--color-border);
+    opacity: 0.9;
+    transition:
+      width var(--dur-fast) var(--steps-small),
+      height var(--dur-fast) var(--steps-small),
+      opacity var(--dur-fast) var(--steps-small);
+  }
+
+  .brutalist-cursor__core {
+    border: var(--border-thick);
+    background: var(--color-accent);
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition:
+      width var(--dur-fast) var(--steps-small),
+      height var(--dur-fast) var(--steps-small),
+      background-color var(--dur-instant) var(--steps-micro),
+      box-shadow var(--dur-fast) var(--steps-small),
+      border-color var(--dur-instant) var(--steps-micro);
+  }
+
+  .brutalist-cursor__core-mark {
+    width: 8px;
+    height: 8px;
+    background: var(--color-border);
+    transition:
+      width var(--dur-fast) var(--steps-small),
+      height var(--dur-fast) var(--steps-small),
+      background-color var(--dur-instant) var(--steps-micro);
+  }
+
+  .brutalist-cursor[data-mode='link'] .brutalist-cursor__shadow {
+    width: 34px;
+    height: 34px;
+    opacity: 0.3;
+  }
+
+  .brutalist-cursor[data-mode='link'] .brutalist-cursor__core {
+    width: 34px;
+    height: 34px;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .brutalist-cursor[data-mode='link'] .brutalist-cursor__core-mark {
+    width: 6px;
+    height: 6px;
+  }
+
+  .brutalist-cursor[data-mode='button'] .brutalist-cursor__shadow {
+    width: 34px;
+    height: 34px;
+  }
+
+  .brutalist-cursor[data-mode='button'] .brutalist-cursor__core {
+    width: 34px;
+    height: 34px;
+    background: var(--color-accent);
+    box-shadow: 10px 10px 0px 0px var(--color-action);
+  }
+
+  .brutalist-cursor[data-mode='button'] .brutalist-cursor__core-mark {
+    width: 12px;
+    height: 12px;
+    background: var(--color-action);
+  }
+
+  .brutalist-cursor[data-mode='card'] .brutalist-cursor__shadow {
+    width: 46px;
+    height: 28px;
+    opacity: 0.42;
+  }
+
+  .brutalist-cursor[data-mode='card'] .brutalist-cursor__core {
+    width: 46px;
+    height: 28px;
+    background: var(--color-surface);
+    box-shadow: 8px 8px 0px 0px var(--color-link);
+  }
+
+  .brutalist-cursor[data-mode='card'] .brutalist-cursor__core-mark {
+    width: 18px;
+    height: 4px;
+    background: var(--color-link);
+  }
+
+  .brutalist-cursor[data-zone='reading'][data-mode='default'] .brutalist-cursor__shadow {
+    width: 22px;
+    height: 22px;
+    opacity: 0.78;
+  }
+
+  .brutalist-cursor[data-zone='reading'][data-mode='default'] .brutalist-cursor__core {
+    width: 22px;
+    height: 22px;
+    background: var(--color-surface);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .brutalist-cursor[data-zone='reading'][data-mode='default'] .brutalist-cursor__core-mark {
+    width: 6px;
+    height: 6px;
+  }
+
+  .brutalist-cursor[data-pressed='true'] .brutalist-cursor__core {
+    box-shadow: 2px 2px 0px 0px var(--color-border);
+  }
+
+  .brutalist-cursor[data-pressed='true'][data-mode='button'] .brutalist-cursor__core {
+    box-shadow: 2px 2px 0px 0px var(--color-action);
+  }
+
+  .brutalist-cursor[data-pressed='true'][data-mode='card'] .brutalist-cursor__core {
+    box-shadow: 2px 2px 0px 0px var(--color-link);
+  }
+
+  @media (prefers-reduced-motion: reduce), (hover: none), (pointer: coarse) {
+    .cursor-reactor,
+    .brutalist-cursor {
+      display: none !important;
+    }
+  }
+</style>
+
+<script>
+  function initBrutalistCursor() {
+    if (window.__brutalistCursorReady) return;
+
+    const finePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (!finePointer || reducedMotion) return;
+
+    const root = document.getElementById('brutalist-cursor');
+    const core = document.getElementById('cursor-core');
+    const shadow = document.getElementById('cursor-shadow');
+    const reactor = document.getElementById('cursor-reactor');
+    const cells = Array.from(document.querySelectorAll('[data-reactor-cell]'));
+
+    if (!root || !core || !shadow || !reactor || cells.length === 0) return;
+
+    window.__brutalistCursorReady = true;
+    document.documentElement.classList.add('has-brutalist-cursor');
+
+    const FRAME_INTERVAL = 1000 / 16;
+    const REACTOR_GRID = 30;
+    const REACTOR_LIFE = 220;
+    const REACTOR_COOLDOWN = 78;
+    const OFFSETS = [
+      [-30, -30],
+      [0, -30],
+      [30, -30],
+      [-30, 0],
+      [30, 0],
+      [-30, 30],
+      [0, 30],
+      [30, 30],
+      [-60, 0],
+      [60, 0],
+      [0, -60],
+      [0, 60],
+    ];
+
+    let targetX = window.innerWidth / 2;
+    let targetY = window.innerHeight / 2;
+    let coreX = targetX;
+    let coreY = targetY;
+    let shadowX = targetX;
+    let shadowY = targetY;
+    let visible = false;
+    let pressed = false;
+    let mode = 'default';
+    let zone = 'default';
+    let rafId = 0;
+    let then = performance.now();
+    let reactorIndex = 0;
+    let lastReactorAt = 0;
+    let lastSpawnX = targetX;
+    let lastSpawnY = targetY;
+    const reactorTimers = new WeakMap();
+
+    const quantize = (value, step) => Math.round(value / step) * step;
+    const stepTowards = (current, target, factor, step) => quantize(current + (target - current) * factor, step);
+
+    const setVisibility = (nextVisible) => {
+      visible = nextVisible;
+      root.classList.toggle('is-active', visible);
+    };
+
+    const resolveMode = (element) => {
+      if (!element) return 'default';
+      if (
+        element.closest(
+          'button, [role="button"], .btn, .sort-controls__btn, .archive__filter'
+        )
+      ) {
+        return 'button';
+      }
+      if (
+        element.closest(
+          '.post-card, .media-card, .about__quick-card, .home-hero__block, .hero__block, .card'
+        )
+      ) {
+        return 'card';
+      }
+      if (element.closest('a, .tag')) {
+        return 'link';
+      }
+      return 'default';
+    };
+
+    const resolveZone = (element) => {
+      if (!element) return 'default';
+      if (element.closest('[data-cursor-zone="reading"]')) return 'reading';
+      if (element.closest('[data-cursor-zone="hero"]')) return 'hero';
+      return 'default';
+    };
+
+    const resolveTone = () => {
+      if (mode === 'button') return 'action';
+      if (mode === 'card') return 'link';
+      if (zone === 'hero') return 'accent';
+      return 'neutral';
+    };
+
+    const resolveKind = () => {
+      if (mode === 'button') return 'button';
+      if (mode === 'card') return 'card';
+      if (zone === 'hero') return 'hero';
+      return 'default';
+    };
+
+    const maybeSpawnReactor = (now) => {
+      const deltaX = targetX - lastSpawnX;
+      const deltaY = targetY - lastSpawnY;
+      const distance = Math.hypot(deltaX, deltaY);
+
+      if (zone === 'reading') return;
+      if (mode === 'link') return;
+      if (mode === 'default' && zone !== 'hero') return;
+      if (distance < (mode === 'button' ? 18 : 24)) return;
+      if (now - lastReactorAt < REACTOR_COOLDOWN) return;
+
+      const cell = cells[reactorIndex % cells.length];
+      const offset = OFFSETS[reactorIndex % OFFSETS.length];
+      const snappedX = quantize(targetX + offset[0], REACTOR_GRID);
+      const snappedY = quantize(targetY + offset[1], REACTOR_GRID);
+
+      reactorIndex += 1;
+      lastReactorAt = now;
+      lastSpawnX = targetX;
+      lastSpawnY = targetY;
+
+      cell.dataset.tone = resolveTone();
+      cell.dataset.kind = resolveKind();
+      cell.style.left = `${snappedX}px`;
+      cell.style.top = `${snappedY}px`;
+      cell.classList.remove('is-active');
+      void cell.offsetWidth;
+      cell.classList.add('is-active');
+
+      const existingTimer = reactorTimers.get(cell);
+      if (existingTimer) window.clearTimeout(existingTimer);
+
+      const timer = window.setTimeout(() => {
+        cell.classList.remove('is-active');
+      }, REACTOR_LIFE);
+
+      reactorTimers.set(cell, timer);
+    };
+
+    const render = (now) => {
+      rafId = window.requestAnimationFrame(render);
+
+      const elapsed = now - then;
+      if (elapsed < FRAME_INTERVAL) return;
+      then = now - (elapsed % FRAME_INTERVAL);
+
+      const coreFactor =
+        pressed
+          ? 0.16
+          : mode === 'button'
+            ? 0.18
+            : mode === 'card'
+              ? 0.2
+              : mode === 'link'
+                ? 0.24
+                : 0.28;
+      const shadowFactor = pressed ? 0.08 : mode === 'card' ? 0.1 : 0.12;
+
+      coreX = stepTowards(coreX, targetX, coreFactor, 4);
+      coreY = stepTowards(coreY, targetY, coreFactor, 4);
+      shadowX = stepTowards(shadowX, targetX, shadowFactor, 8);
+      shadowY = stepTowards(shadowY, targetY, shadowFactor, 8);
+
+      core.style.transform = `translate3d(${coreX}px, ${coreY}px, 0) translate(-50%, -50%)`;
+      shadow.style.transform = `translate3d(${shadowX + 6}px, ${shadowY + 6}px, 0) translate(-50%, -50%)`;
+
+      root.dataset.mode = mode;
+      root.dataset.zone = zone;
+      root.dataset.pressed = String(pressed);
+
+      maybeSpawnReactor(now);
+    };
+
+    const onPointerMove = (event) => {
+      if (event.pointerType && event.pointerType !== 'mouse') return;
+
+      targetX = event.clientX;
+      targetY = event.clientY;
+      setVisibility(true);
+
+      const target = event.target instanceof Element ? event.target : null;
+      mode = resolveMode(target);
+      zone = resolveZone(target);
+    };
+
+    const onPointerDown = () => {
+      pressed = true;
+    };
+
+    const onPointerUp = () => {
+      pressed = false;
+    };
+
+    const hideCursor = () => {
+      setVisibility(false);
+      pressed = false;
+      mode = 'default';
+      zone = 'default';
+    };
+
+    window.addEventListener('pointermove', onPointerMove, { passive: true });
+    window.addEventListener('pointerdown', onPointerDown, { passive: true });
+    window.addEventListener('pointerup', onPointerUp, { passive: true });
+    window.addEventListener('blur', hideCursor);
+    document.documentElement.addEventListener('mouseleave', hideCursor);
+
+    rafId = window.requestAnimationFrame(render);
+  }
+
+  initBrutalistCursor();
+  document.addEventListener('astro:page-load', initBrutalistCursor);
+</script>

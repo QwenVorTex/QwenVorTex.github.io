@@ -14,7 +14,7 @@ const tagStats = getTagStats(allPosts).slice(0, 8);
 ---
 
 <BaseLayout title={siteConfig.title} description={siteConfig.description}>
-  <section class="home-hero">
+  <section class="home-hero" data-cursor-zone="hero">
     <div class="container home-hero__grid">
       <div class="home-hero__copy">
         <p class="home-hero__eyebrow text-label anim-enter">{siteConfig.home.eyebrow}</p>
@@ -235,8 +235,8 @@ const tagStats = getTagStats(allPosts).slice(0, 8);
   .home-hero__block {
     aspect-ratio: 1;
     border: var(--border-thick);
-    transition: transform 0.15s steps(3, end),
-                box-shadow 0.15s steps(3, end);
+    transition: transform 0.16s steps(2, end),
+                box-shadow 0.16s steps(2, end);
     cursor: pointer;
   }
 
@@ -255,31 +255,31 @@ const tagStats = getTagStats(allPosts).slice(0, 8);
     background: var(--color-accent);
     box-shadow: var(--shadow-lg);
     transform: rotate(-2deg);
-    animation: home-block-drift-1 4s steps(8, end) infinite;
+    animation: home-block-drift-1 3.6s steps(5, end) infinite;
   }
 
   .home-hero__block--2 {
     background: var(--color-action);
     box-shadow: var(--shadow-lg);
     transform: translateY(20px) rotate(1deg);
-    animation: home-block-drift-2 5s steps(8, end) infinite;
-    animation-delay: 0.6s;
+    animation: home-block-drift-2 4.2s steps(5, end) infinite;
+    animation-delay: 0.4s;
   }
 
   .home-hero__block--3 {
     background: var(--color-link);
     box-shadow: var(--shadow-lg);
     transform: translateY(-10px) rotate(0.5deg);
-    animation: home-block-drift-3 4.5s steps(8, end) infinite;
-    animation-delay: 1.2s;
+    animation: home-block-drift-3 3.8s steps(5, end) infinite;
+    animation-delay: 0.9s;
   }
 
   .home-hero__block--4 {
     background: var(--color-border);
     box-shadow: var(--shadow-lg);
     transform: rotate(-1deg);
-    animation: home-block-drift-4 5.5s steps(8, end) infinite;
-    animation-delay: 0.3s;
+    animation: home-block-drift-4 4.6s steps(5, end) infinite;
+    animation-delay: 0.2s;
   }
 
   .home-hero__stats {
@@ -364,37 +364,36 @@ const tagStats = getTagStats(allPosts).slice(0, 8);
 
   @keyframes home-block-drift-1 {
     0%   { transform: rotate(-2deg) translate(0, 0); }
-    15%  { transform: rotate(-1deg) translate(5px, -8px); }
-    30%  { transform: rotate(-3deg) translate(-3px, -12px); }
-    50%  { transform: rotate(0deg) translate(8px, -5px); }
-    70%  { transform: rotate(-2.5deg) translate(-5px, 4px); }
-    85%  { transform: rotate(-1deg) translate(3px, 6px); }
+    20%  { transform: rotate(-1deg) translate(6px, -6px); }
+    40%  { transform: rotate(-4deg) translate(-6px, -12px); }
+    60%  { transform: rotate(1deg) translate(12px, -6px); }
+    80%  { transform: rotate(-3deg) translate(-6px, 6px); }
     100% { transform: rotate(-2deg) translate(0, 0); }
   }
 
   @keyframes home-block-drift-2 {
     0%   { transform: translateY(20px) rotate(1deg); }
-    20%  { transform: translate(-6px, 14px) rotate(2.5deg); }
-    40%  { transform: translate(4px, 8px) rotate(0deg); }
-    60%  { transform: translate(-8px, 22px) rotate(1.5deg); }
-    80%  { transform: translate(6px, 18px) rotate(-0.5deg); }
+    20%  { transform: translate(-6px, 12px) rotate(3deg); }
+    40%  { transform: translate(6px, 6px) rotate(0deg); }
+    60%  { transform: translate(-12px, 24px) rotate(2deg); }
+    80%  { transform: translate(6px, 18px) rotate(-1deg); }
     100% { transform: translateY(20px) rotate(1deg); }
   }
 
   @keyframes home-block-drift-3 {
     0%   { transform: translateY(-10px) rotate(0.5deg); }
-    18%  { transform: translate(7px, -16px) rotate(-1deg); }
-    36%  { transform: translate(-4px, -6px) rotate(1.5deg); }
-    54%  { transform: translate(3px, -18px) rotate(-0.5deg); }
-    72%  { transform: translate(-6px, -4px) rotate(2deg); }
+    20%  { transform: translate(12px, -18px) rotate(-1.5deg); }
+    40%  { transform: translate(-6px, -6px) rotate(2deg); }
+    60%  { transform: translate(6px, -24px) rotate(-0.5deg); }
+    80%  { transform: translate(-12px, -6px) rotate(2.5deg); }
     100% { transform: translateY(-10px) rotate(0.5deg); }
   }
 
   @keyframes home-block-drift-4 {
     0%   { transform: rotate(-1deg) translate(0, 0); }
-    25%  { transform: rotate(0.5deg) translate(-5px, -10px); }
-    50%  { transform: rotate(-2deg) translate(6px, -6px); }
-    75%  { transform: rotate(1deg) translate(-3px, 8px); }
+    25%  { transform: rotate(1deg) translate(-6px, -12px); }
+    50%  { transform: rotate(-3deg) translate(12px, -6px); }
+    75%  { transform: rotate(2deg) translate(-6px, 12px); }
     100% { transform: rotate(-1deg) translate(0, 0); }
   }
 

@@ -5,23 +5,42 @@
 
 /* ── Entrance Animations ── */
 @keyframes brutalist-enter {
-  0%   { opacity: 0; transform: translateY(30px); }
+  0%   { opacity: 0; transform: translateY(42px); }
   100% { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes brutalist-slide-left {
-  0%   { opacity: 0; transform: translateX(40px); }
+  0%   { opacity: 0; transform: translateX(56px); }
   100% { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes brutalist-slide-right {
-  0%   { opacity: 0; transform: translateX(-40px); }
+  0%   { opacity: 0; transform: translateX(-56px); }
   100% { opacity: 1; transform: translateX(0); }
 }
 
 @keyframes brutalist-scale-in {
-  0%   { opacity: 0; transform: scale(0.85); }
+  0%   { opacity: 0; transform: scale(0.78); }
   100% { opacity: 1; transform: scale(1); }
+}
+
+@keyframes brutalist-reveal {
+  0% {
+    opacity: 0;
+    transform: translateY(42px) scale(0.88);
+  }
+  34% {
+    opacity: 0.12;
+    transform: translateY(34px) scale(0.9);
+  }
+  68% {
+    opacity: 0.68;
+    transform: translateY(14px) scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
 /* Step-based entrance classes */
@@ -117,11 +136,11 @@
 /* ── Scroll-triggered visibility ── */
 .scroll-reveal {
   opacity: 0;
-  transform: translateY(20px);
+  transform: translateY(42px) scale(0.88);
 }
 
 .scroll-reveal.is-visible {
-  animation: brutalist-enter var(--dur-normal) var(--steps-medium) both;
+  animation: brutalist-reveal 0.24s steps(3, end) both;
 }
 
 /* ── Reduced Motion ── */

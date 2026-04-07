@@ -10,15 +10,15 @@
   import { initScrollEngine } from '@/scripts/scroll-engine';
   import { initScrollReveal } from '@/scripts/scroll-reveal';
 
-  // Only activate scroll engine on non-touch devices and when user permits motion
+  // Only activate scroll engine when the environment behaves like a desktop pointer setup
   const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+  const hasFinePointer = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
   // Initialize scroll reveal (always active)
   initScrollReveal();
 
-  // Initialize custom scroll engine (desktop only, motion permitted)
-  if (!prefersReducedMotion && !isTouchDevice) {
+  // Initialize custom scroll engine (fine-pointer environments only, motion permitted)
+  if (!prefersReducedMotion && hasFinePointer) {
     const engine = initScrollEngine();
     engine.start();
 

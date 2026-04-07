@@ -89,9 +89,9 @@
 
   /* ── Step Animation ── */
   --steps-micro:  steps(2, end);
-  --steps-small:  steps(3, end);
-  --steps-medium: steps(5, end);
-  --steps-large:  steps(8, end);
+  --steps-small:  steps(2, end);
+  --steps-medium: steps(4, end);
+  --steps-large:  steps(6, end);
 
   /* ── Transition Durations ── */
   --dur-instant:  0.1s;
