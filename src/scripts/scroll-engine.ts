@@ -8,7 +8,7 @@
  */
 
 export function initScrollEngine() {
-  const TARGET_FPS = 12;
+  const TARGET_FPS = 24;
   const FPS_INTERVAL = 1000 / TARGET_FPS;
   const SCROLL_SPEED = 0.96;
   const SNAP_THRESHOLD = 1.5;
